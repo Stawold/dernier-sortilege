@@ -1,0 +1,364 @@
+<title>Dernier Sortilège</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cinzel:wght@500;700&family=EB+Garamond:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
+<style>
+/* Mise en page : une scène 3D plein cadre, un pupitre de commandes en bas, un radar en haut à droite. */
+:root {
+  color-scheme: dark;
+  --bg: #0e0813;
+  --panel: #1b1121;
+  --panel-hi: #2b1a30;
+  --line: #7d5f2a;
+  --gold: #e0b04a;
+  --gold-hi: #f7dd8e;
+  --parch: #f1e6c8;
+  --mute: #a99bb0;
+  --ruby: #d24a5c;
+  --mist: #a074e6;
+  --f-display: 'Cinzel Decorative', 'Cinzel', Georgia, serif;
+  --f-label: 'Cinzel', Georgia, serif;
+  --f-body: 'EB Garamond', Georgia, 'Times New Roman', serif;
+}
+html, body { height: 100%; }
+body {
+  margin: 0; overflow: hidden; background: var(--bg); color: var(--parch);
+  font-family: var(--f-body); font-size: 16px; line-height: 1.35;
+  -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation; overscroll-behavior: none;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible { outline: 2px solid var(--gold-hi); outline-offset: 2px; }
+
+#app { position: relative; height: 100%; display: flex; flex-direction: column; background: var(--bg); }
+#stage { position: relative; flex: 1 1 auto; min-height: 0; overflow: hidden; background: #0d0711; }
+#gl { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+#hud { position: absolute; inset: 0; pointer-events: none; }
+#hud > * { pointer-events: none; }
+#hud button { pointer-events: auto; }
+
+/* barre du haut */
+#hudTop { position: absolute; top: 10px; left: 12px; right: calc(var(--radar) + 24px); display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+#topbar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.pill {
+  display: inline-flex; align-items: baseline; gap: 6px; padding: 5px 10px 4px;
+  background: linear-gradient(#1d1224e6, #12091ae6); border: 1px solid var(--line); border-radius: 3px;
+  box-shadow: inset 0 0 0 1px #0007, 0 2px 8px #0008; font-family: var(--f-label);
+}
+.pill .k { font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--mute); }
+.pill b { font-size: 15px; font-weight: 700; color: var(--gold-hi); font-variant-numeric: tabular-nums; }
+#mistPill.hot { border-color: var(--mist); box-shadow: 0 0 14px #a074e688, inset 0 0 0 1px #0007; }
+#mistPill.hot b { color: #d9c2ff; }
+.pill.btn { padding: 4px 10px; min-width: 34px; justify-content: center; align-items: center; color: var(--gold-hi); }
+.pill.btn svg { width: 16px; height: 16px; display: block; }
+#chips { display: flex; flex-direction: column; gap: 6px; }
+.chip {
+  display: inline-flex; align-items: center; gap: 7px; align-self: flex-start; padding: 4px 10px 4px 8px;
+  background: #12091ad9; border: 1px solid var(--line); border-radius: 3px; font-family: var(--f-label); font-size: 11px;
+  letter-spacing: .08em; text-transform: uppercase; color: var(--parch);
+}
+.chip i { width: 10px; height: 10px; transform: rotate(45deg); display: block; }
+
+#radar {
+  position: absolute; top: 10px; right: 12px; width: var(--radar); height: var(--radar);
+  border: 1px solid var(--line); border-radius: 3px; background: #0b0710e6; box-shadow: 0 0 0 3px #0b0710aa, 0 4px 14px #000a;
+}
+
+#netBanner { position: fixed; left: 50%; top: calc(8px + env(safe-area-inset-top, 0px)); transform: translateX(-50%); z-index: 99; max-width: min(92vw, 420px);
+  padding: 8px 16px; background: #1a0c24f2; border: 1px solid var(--gold); border-radius: 3px; box-shadow: 0 6px 22px #000b; font-size: 15px; text-align: center; color: var(--gold-hi, #f7dd8e); }
+#netBanner[hidden] { display: none; }
+#netBanner .dot { display: inline-block; width: 8px; height: 8px; margin-right: 8px; border-radius: 50%; background: #e0b04a; animation: nbp 1s infinite alternate; }
+@keyframes nbp { from { opacity: .25 } to { opacity: 1 } }
+
+#toasts { position: absolute; left: 12px; right: 12px; bottom: 10px; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.toast {
+  max-width: min(92%, 380px); padding: 6px 12px; background: #150b1cef; border-bottom: 2px solid var(--gold);
+  font-size: 15px; line-height: 1.25; text-align: center; opacity: 0; transform: translateY(-4px);
+  transition: opacity .25s, transform .25s;
+}
+.toast.in { opacity: 1; transform: none; }
+.toast.bad { border-bottom-color: var(--ruby); }
+.toast.mist { border-bottom-color: var(--mist); }
+
+/* étiquettes de noms en vue du dessus */
+#tags { position: absolute; inset: 0; overflow: hidden; pointer-events: none; transition: opacity .4s; }
+.tag { position: absolute; left: 0; top: 0; padding: 1px 7px 0; font-family: var(--f-label); font-size: 10px; letter-spacing: .08em; color: #fff7de;
+  background: #120a18cc; border: 1px solid var(--c, var(--gold)); border-radius: 3px; text-shadow: 0 1px 2px #000; white-space: nowrap; }
+body.spectating #radar, body.spectating #wand, body.spectating #vignette { display: none; }
+
+#wand { position: absolute; right: 13%; bottom: -30px; width: 10px; height: 160px; border-radius: 6px 6px 3px 3px;
+  background: linear-gradient(90deg, #2a170c, #7a4d2a 45%, #2a170c); transform: rotate(-17deg); transform-origin: 50% 100%; box-shadow: 0 0 10px #000a; }
+#wand::before { content: ''; position: absolute; top: -9px; left: 50%; width: 16px; height: 16px; margin-left: -8px; border-radius: 50%;
+  background: radial-gradient(circle, #fff7cf 0 25%, #f4c85a 45%, #f4c85a00 72%); box-shadow: 0 0 18px 6px #f4c85a88; }
+#wand.zap::before { animation: zap .55s ease-out; }
+@keyframes zap { 0% { transform: scale(1); } 25% { transform: scale(1.9); box-shadow: 0 0 22px 8px #fff1b0aa; } 100% { transform: scale(1); } }
+#vignette { position: absolute; inset: 0; background: radial-gradient(ellipse at center, #0000 52%, #060309b0 100%); }
+#vignette.hurt { background: radial-gradient(ellipse at center, #d24a5c33 20%, #7a0f20cc 100%); }
+
+/* pupitre */
+#controls {
+  position: relative; flex: 0 0 auto; display: flex; justify-content: center; align-items: center; gap: 14px;
+  padding: 10px 14px calc(12px + env(safe-area-inset-bottom, 0px));
+  background: linear-gradient(#26162b, #150c1a 70%); border-top: 2px solid var(--gold);
+  box-shadow: 0 -8px 24px #000a, inset 0 1px 0 #f7dd8e33;
+}
+#pad { display: grid; grid-template-columns: repeat(3, minmax(0, 76px)); grid-auto-rows: 62px; gap: 7px; }
+.key {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; padding: 0;
+  background: linear-gradient(#35213a, #1d1223); border: 1px solid var(--line); border-radius: 4px;
+  box-shadow: inset 0 1px 0 #f7dd8e22, inset 0 -3px 0 #0006, 0 2px 0 #0009;
+  font-family: var(--f-label); font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--parch);
+  transition: transform .06s, box-shadow .12s, opacity .15s;
+}
+.key svg { width: 24px; height: 24px; stroke: var(--gold-hi); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.key svg .f { fill: var(--gold-hi); stroke: none; }
+.key:active:not(:disabled) { transform: translateY(2px); box-shadow: inset 0 1px 0 #f7dd8e22, 0 0 14px #e0b04a66; border-color: var(--gold-hi); }
+.key:disabled { opacity: .32; cursor: default; }
+#cast {
+  position: relative; flex: 0 0 auto; width: 104px; height: 104px; border-radius: 50%; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 2px; font-family: var(--f-label); font-size: 11px; font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--gold-hi);
+  background: radial-gradient(circle at 50% 35%, #3a2142, #170d1c 72%); border: 2px solid var(--line);
+  box-shadow: inset 0 0 0 3px #0008, 0 3px 0 #000a; transition: opacity .15s, box-shadow .2s, border-color .2s;
+}
+#cast svg { width: 34px; height: 34px; fill: var(--gold-hi); stroke: none; }
+#cast:disabled { opacity: .38; }
+#cast.ready { border-color: var(--gold-hi); animation: ready 1.2s ease-in-out infinite; }
+#cast.ready:active { transform: scale(.96); }
+@keyframes ready { 0%, 100% { box-shadow: inset 0 0 0 3px #0008, 0 0 10px 2px #f4c85a55; } 50% { box-shadow: inset 0 0 0 3px #0008, 0 0 28px 8px #f4c85acc; } }
+#timer { position: absolute; left: 0; right: 0; top: -2px; height: 4px; background: #0008; pointer-events: none; z-index: 3; transition: opacity .25s; }
+#timer i { display: block; height: 100%; width: 100%; background: linear-gradient(90deg, #b98a2c, #f7dd8e); transform-origin: left; transition: transform .2s linear; }
+#timer b { position: absolute; right: 12px; top: -30px; padding: 3px 10px; border: 1px solid var(--line); border-radius: 3px; background: #150c1acc; font-family: var(--f-label); font-size: 13px; letter-spacing: .08em; color: var(--gold-hi); font-variant-numeric: tabular-nums; }
+#timer.hot i { background: linear-gradient(90deg, #a02a3a, #ff7a7a); }
+#timer.hot b { color: #ffb0b0; border-color: #a02a3a; }
+#timer[hidden] { display: none; }
+body.spectating #timer { display: none; }
+body.spectating #controls { opacity: .45; pointer-events: none; }
+
+/* salle multijoueur */
+.cta.alt { margin-top: 10px; background: linear-gradient(#3a2547, #26162f); color: var(--gold-hi); border-color: var(--gold); box-shadow: 0 3px 0 #0c0610; }
+.field.col { flex-direction: column; align-items: stretch; gap: 6px; }
+#lobby input { width: 100%; padding: 11px 12px; background: #0f0814; border: 1px solid var(--line); border-radius: 3px; color: var(--parch, #f3e6c4); font: 17px var(--f-label); letter-spacing: .06em; }
+#lobby input:focus { outline: 2px solid var(--gold); outline-offset: 1px; }
+.joinrow { display: flex; gap: 10px; align-items: stretch; } .joinrow input { text-transform: uppercase; text-align: center; letter-spacing: .4em; font-weight: 700; flex: 1 1 0; min-width: 0; } .joinrow .cta { flex: 1 1 0; margin: 0; width: auto; }
+.or { display: flex; align-items: center; gap: 10px; margin: 14px 0; color: var(--mute); font: 11px var(--f-label); letter-spacing: .2em; text-transform: uppercase; } .or::before, .or::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+.err { min-height: 1.2em; margin: 10px 0 0; color: #ff9a9a; font-size: 15px; }
+.codeBox { display: flex; flex-direction: column; align-items: center; gap: 2px; margin-bottom: 4px; } .codeBox b { font: 700 40px var(--f-display); letter-spacing: .28em; padding-left: .28em; color: var(--gold-hi); text-shadow: 0 0 18px #e0b04a66; }
+.k { font: 10px var(--f-label); letter-spacing: .16em; text-transform: uppercase; color: var(--mute); } .k.sect { margin: 12px 0 6px; text-align: left; }
+.ghost.tight { margin: 0 0 8px; }
+#lbPlayers { list-style: none; margin: 8px 0 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; text-align: left; }
+#lbPlayers li { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border: 1px solid #3a2a3f; border-radius: 3px; background: #170d1c; font: 12px var(--f-label); letter-spacing: .04em; min-width: 0; }
+#lbPlayers li i { flex: none; width: 10px; height: 10px; transform: rotate(45deg); background: var(--c); } #lbPlayers li span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; } #lbPlayers li em { font-style: normal; font-size: 9px; color: var(--gold); letter-spacing: .1em; text-transform: uppercase; } #lbPlayers li.off { opacity: .45; }
+.wgrid.sm { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 5px; } .wgrid.sm .wz { font-size: 0; padding: 0; } .wgrid.sm .wz canvas { aspect-ratio: 9 / 11; }
+.wz[disabled] { cursor: not-allowed; }
+.wait, .tot { margin: 10px 0 0; color: var(--mute); font-style: italic; font-size: 15px; }
+#lbHost { margin-top: 14px; } #lbHost[hidden], .wait[hidden] { display: none; }
+.cta:disabled { opacity: .45; filter: grayscale(.4); box-shadow: none; }
+
+/* sélection du magicien */
+.card.wide { max-width: 460px; }
+.wgrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 4px 0 16px; }
+.wz { position: relative; padding: 0 0 5px; border: 1px solid #3a2a3f; border-radius: 4px; background: radial-gradient(ellipse at 50% 35%, #34203a, #160c1c 80%); color: var(--mute); font-family: var(--f-label); font-size: 10.5px; letter-spacing: .06em; display: flex; flex-direction: column; align-items: center; gap: 2px; overflow: hidden; }
+.wz canvas { width: 100%; aspect-ratio: 9 / 12.5; display: block; }
+.wz .sw { position: absolute; top: 5px; left: 5px; width: 9px; height: 9px; transform: rotate(45deg); background: var(--c); box-shadow: 0 0 0 1px #000a; }
+.wz[aria-checked="true"] { border-color: var(--gold-hi); box-shadow: 0 0 0 1px var(--gold-hi), 0 0 18px #f7dd8e55; color: var(--gold-hi); }
+.wz[disabled] { opacity: .35; }
+@media (max-height: 640px) { .wz canvas { aspect-ratio: 9 / 9; } }
+
+/* écrans */
+.overlay { position: absolute; inset: 0; z-index: 10; display: flex; align-items: center; justify-content: center; padding: 20px 16px;
+  background: radial-gradient(ellipse at 50% 30%, #2b1633ee, #0a050fee 70%); overflow-y: auto; }
+.overlay[hidden] { display: none; }
+.card { width: 100%; max-width: 420px; margin: auto; padding: 22px 20px 20px; text-align: center;
+  background: linear-gradient(#1f1226f2, #130a19f2); border: 1px solid var(--line); border-radius: 4px;
+  box-shadow: 0 0 0 4px #0c0610, 0 0 0 5px var(--line), 0 18px 50px #000c; }
+.card h1 { margin: 2px 0 4px; font-family: var(--f-display); font-weight: 700; font-size: clamp(26px, 8.4vw, 36px); line-height: 1.08; text-wrap: balance;
+  background: linear-gradient(#fff0b0, #e0b04a 55%, #a87a22); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.card h2 { margin: 0 0 10px; font-family: var(--f-display); font-size: 24px; color: var(--gold-hi); text-wrap: balance; }
+.card .sub { margin: 0 0 16px; color: var(--mute); font-style: italic; font-size: 17px; }
+.card p { margin: 0 0 12px; font-size: 17px; }
+.rule { height: 1px; margin: 14px 0; background: linear-gradient(90deg, #0000, var(--line), #0000); }
+.field { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 16px; text-align: left; }
+.field label { font-family: var(--f-label); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--mute); }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 3px; overflow: hidden; }
+.seg button { padding: 7px 14px; background: #170d1c; border: 0; border-left: 1px solid var(--line); font-family: var(--f-label); font-weight: 700; font-size: 14px; color: var(--mute); }
+.seg button:first-child { border-left: 0; }
+.stepper { align-items: stretch; flex: none; }
+.stepper button { width: 40px; padding: 7px 0; font-size: 20px; line-height: 1; color: #e0b04a; }
+.stepper button:disabled { opacity: .35; }
+.stepper span { min-width: 52px; display: grid; place-items: center; background: #0f0814; font-family: var(--f-label); font-weight: 700; font-size: 17px; color: var(--ink, #f3e6c4); border-left: 1px solid var(--line); border-right: 1px solid var(--line); }
+.seg button[aria-pressed="true"] { background: linear-gradient(#e0b04a, #b98a2c); color: #1b1006; }
+.cta { display: block; width: 100%; padding: 13px 14px 12px; border: 1px solid #f7dd8e; border-radius: 3px; background: linear-gradient(#f0c966, #c1922f);
+  color: #1d1208; font-family: var(--f-label); font-weight: 700; font-size: 14px; letter-spacing: .14em; text-transform: uppercase; box-shadow: 0 3px 0 #6b4d14, 0 6px 18px #0009; }
+.cta:active { transform: translateY(2px); box-shadow: 0 1px 0 #6b4d14; }
+.ghost { margin-top: 12px; padding: 6px 10px; background: none; border: 0; color: var(--gold); font-family: var(--f-label); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; text-decoration: underline; text-underline-offset: 4px; }
+.how { margin: 0 0 14px; padding: 0; list-style: none; text-align: left; }
+.how li { position: relative; padding: 0 0 9px 22px; font-size: 16.5px; }
+.how li::before { content: ''; position: absolute; left: 4px; top: .5em; width: 7px; height: 7px; background: var(--gold); transform: rotate(45deg); }
+.how b { color: var(--gold-hi); font-weight: 600; }
+.stats { display: flex; justify-content: center; gap: 22px; margin: 6px 0 16px; font-family: var(--f-label); }
+.stats div { display: flex; flex-direction: column; gap: 2px; }
+.stats b { font-size: 24px; color: var(--gold-hi); font-variant-numeric: tabular-nums; }
+.stats span { font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--mute); }
+#loading { position: absolute; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; background: var(--bg); font-family: var(--f-label); letter-spacing: .2em; text-transform: uppercase; font-size: 12px; color: var(--gold); }
+@media (max-width: 380px) { #pad { grid-template-columns: repeat(3, minmax(0, 66px)); grid-auto-rows: 58px; } #cast { width: 92px; height: 92px; } }
+@media (min-width: 760px) { #controls { gap: 28px; } #pad { grid-template-columns: repeat(3, 84px); grid-auto-rows: 66px; } }
+@media (orientation: landscape) and (max-height: 540px) {
+  #app { flex-direction: row; }
+  #controls { flex-direction: column; justify-content: center; gap: 10px; width: 250px; padding: 8px 12px calc(8px + env(safe-area-inset-bottom, 0px)); border-top: 0; border-left: 2px solid var(--gold); background: linear-gradient(90deg, #26162b, #150c1a); box-shadow: -8px 0 24px #000a; }
+  #pad { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: 46px; width: 100%; }
+  .key { font-size: 8.5px; letter-spacing: .06em; }
+  .key svg { width: 18px; height: 18px; }
+  #cast { width: 74px; height: 74px; } #cast svg { width: 24px; height: 24px; } #castLabel { font-size: 9px; }
+  .toast { font-size: 14px; }
+}
+@media (prefers-reduced-motion: reduce) { #cast.ready { animation: none; } }
+</style>
+
+<div id="app" style="--radar:116px">
+  <div id="stage">
+    <canvas id="gl"></canvas>
+    <div id="hud">
+      <div id="vignette"></div>
+      <div id="hudTop">
+      <div id="topbar">
+        <div class="pill"><span class="k">Tour</span><b id="turnN">1</b></div>
+        <div class="pill"><span class="k">En vie</span><b id="aliveN">6</b></div>
+        <div class="pill" id="mistPill"><span class="k">Brume</span><b id="mistN">5</b></div>
+        <button class="pill btn" id="btnBook" aria-label="Lire les règles"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5C4 4.7 4.7 4 5.5 4H11v15H5.5C4.7 19 4 18.3 4 17.5z"/><path d="M20 5.5c0-.8-.7-1.5-1.5-1.5H13v15h5.5c.8 0 1.5-.7 1.5-1.5z"/></svg></button>
+        <button class="pill btn" id="btnSound" aria-label="Couper le son" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5z"/><path id="sndWaves" d="M15.5 9a4 4 0 0 1 0 6M18 6.5a8 8 0 0 1 0 11"/></svg></button>
+      </div>
+      <div id="chips"></div>
+      </div>
+      <canvas id="radar"></canvas>
+      <div id="toasts"></div>
+      <div id="tags"></div>
+      <div id="wand"></div>
+    </div>
+  </div>
+
+  <div id="controls">
+    <div id="timer" hidden><i></i><b>20 s</b></div>
+    <div id="pad">
+      <span></span>
+      <button class="key" data-act="F" aria-label="Avancer"><svg viewBox="0 0 24 24"><path class="f" d="M12 4l7.5 8.5H15V20H9v-7.5H4.5z"/></svg><span class="lbl">Avancer</span></button>
+      <span></span>
+      <button class="key" data-act="L" aria-label="Un pas à gauche en se tournant"><svg viewBox="0 0 24 24"><path d="M19 19a8 8 0 0 0-8-11H6"/><path d="M9.5 3.5L5.5 8l4 4.5"/></svg><span class="lbl">Gauche</span></button>
+      <button class="key" data-act="B" aria-label="Reculer"><svg viewBox="0 0 24 24" style="transform:rotate(180deg)"><path class="f" d="M12 4l7.5 8.5H15V20H9v-7.5H4.5z"/></svg><span class="lbl">Reculer</span></button>
+      <button class="key" data-act="R" aria-label="Un pas à droite en se tournant"><svg viewBox="0 0 24 24" style="transform:scaleX(-1)"><path d="M19 19a8 8 0 0 0-8-11H6"/><path d="M9.5 3.5L5.5 8l4 4.5"/></svg><span class="lbl">Droite</span></button>
+    </div>
+    <button id="cast" data-act="CAST" aria-label="Lancer le sort" disabled>
+      <svg viewBox="0 0 24 24"><path d="M12 1.5l2.4 8.1 8.1 2.4-8.1 2.4L12 22.5l-2.4-8.1L1.5 12l8.1-2.4z"/></svg>
+      <span id="castLabel">Sort</span>
+    </button>
+  </div>
+
+  <div class="overlay" id="pick" hidden>
+    <div class="card wide">
+      <h2>Choisis ton magicien</h2>
+      <p class="sub" id="pickSub">Chaque joueur prend une couleur différente.</p>
+      <div class="wgrid" id="wgrid" role="radiogroup" aria-label="Magicien"></div>
+      <button class="cta" id="btnGo">Entrer dans le château</button>
+      <button class="ghost" id="btnPickBack">Retour</button>
+    </div>
+  </div>
+
+  <div class="overlay" id="lobby" hidden>
+    <div class="card wide">
+      <h2>Salle de jeu</h2>
+      <div id="lbEntry">
+        <p class="sub">Un ami crée la salle et partage le code.</p>
+        <div class="field col"><label for="lbName">Votre nom</label><input id="lbName" maxlength="14" autocomplete="nickname" spellcheck="false" placeholder="Magicien"></div>
+        <button class="cta" id="lbCreate">Créer une salle</button>
+        <div class="or"><span>ou</span></div>
+        <div class="joinrow"><input id="lbCode" maxlength="4" placeholder="CODE" autocapitalize="characters" autocomplete="off" spellcheck="false" aria-label="Code de la salle"><button class="cta alt" id="lbJoin">Rejoindre</button></div>
+        <p class="err" id="lbErr" role="alert"></p>
+        <button class="ghost" id="lbBack">Retour</button>
+      </div>
+      <div id="lbRoom" hidden>
+        <div class="codeBox"><span class="k">Code de la salle</span><b id="lbCodeShow">----</b></div>
+        <button class="ghost tight" id="lbShare">Copier le lien d'invitation</button>
+        <ul id="lbPlayers"></ul>
+        <div class="k sect">Votre couleur</div>
+        <div class="wgrid sm" id="lbGrid" role="radiogroup" aria-label="Couleur du magicien"></div>
+        <div id="lbHost">
+          <div class="field"><label id="lbBotsLabel">Bots de remplissage</label>
+            <div class="seg stepper" role="group" aria-labelledby="lbBotsLabel"><button id="lbBotMinus" aria-label="Moins de bots">−</button><span id="lbBots">0</span><button id="lbBotPlus" aria-label="Plus de bots">+</button></div>
+          </div>
+          <button class="cta" id="lbStart">Lancer la partie</button>
+        </div>
+        <p class="wait" id="lbWait">En attente de l'hôte…</p>
+        <p class="tot" id="lbTotal"></p>
+        <p class="err" id="lbErr2" role="alert"></p>
+        <button class="ghost" id="lbLeave">Quitter la salle</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="intro" hidden>
+    <div class="card">
+      <h1>Dernier Sortilège</h1>
+      <p class="sub">Un seul magicien quittera le château.</p>
+      <ul class="how">
+        <li><b>Tous jouent en même temps.</b> À chaque tour, une seule action : se déplacer ou lancer le sort.</li>
+        <li><b>Le sort part tout droit</b> et frappe le premier magicien en vue, s'il vous tourne le dos ou le flanc.</li>
+        <li><b>20 secondes par tour.</b> Sans choix à temps, vous êtes éliminé d'office.</li>
+        <li><b>La brume dorée avance</b> d'un cran tous les cinq tours dès le tour 10, vers le centre du château.</li>
+      </ul>
+      <div class="field"><label id="botsLabel">Joueurs au total</label>
+        <div class="seg stepper" role="group" aria-labelledby="botsLabel">
+          <button id="nMinus" aria-label="Moins de joueurs">−</button><span id="nPlayers" aria-live="polite">6</span><button id="nPlus" aria-label="Plus de joueurs">+</button>
+        </div>
+      </div>
+      <button class="cta" id="btnStart">Partie solo contre des bots</button>
+      <button class="cta alt" id="btnMulti" hidden>Jouer avec des amis (salle)</button>
+      <button class="ghost" id="btnBook2">Lire le grimoire</button>
+      <button class="ghost btnQ" aria-label="Qualité graphique">Qualité : <span class="qLabel">Haute</span></button>
+    </div>
+  </div>
+
+  <div class="overlay" id="book" hidden>
+    <div class="card">
+      <h2>Grimoire</h2>
+      <ul class="how">
+        <li><b>Une action par tour :</b> avancer, reculer, aller à gauche ou à droite, ou lancer le sort. Gauche et droite vous font avancer d'une case et vous tournent dans cette direction. Face à un mur, elles font simplement pivoter sur place. Tout le monde agit en même temps.</li>
+        <li><b>Vision :</b> tout droit jusqu'au mur. Le radar garde en mémoire ce que vous avez vu. Si vous êtes éliminé, le brouillard se lève et vous suivez la fin de la partie du dessus.</li>
+        <li><b>Sort :</b> portée illimitée en ligne droite. Il touche le premier magicien rencontré, sauf s'il vous regarde en face. Pour viser quelqu'un à côté, placez-vous d'abord face à lui avec gauche ou droite.</li>
+        <li><b>Collision :</b> deux magiciens qui visent la même case ne bougent pas, se tournent le dos et ne peuvent pas entrer sur cette case au tour suivant.</li>
+        <li><b>Temps :</b> 20 secondes pour agir à chaque tour. Si le temps est écoulé sans choix, le magicien est éliminé et perd.</li>
+        <li><b>Brume :</b> dès le tour 10, un cran tous les 5 tours. Les magiciens pris dedans sont éliminés. Les murs s'effondrent au besoin pour garder la zone d'un seul tenant. <b>La case centrale (marquée d'un point doré sur le plan) est ouverte sur ses quatre côtés et la brume ne l'atteint jamais</b> : à la dernière fermeture, celui qui la tient survit. Si personne n'y est, la brume patiente.</li>
+        <li><b>3 bonus par carte :</b> <span style="color:#7cc4ff">bleu</span> – traverser un mur une fois (avancer ou reculer face à un mur) ; <span style="color:#5be08a">vert</span> – bouclier qui annule un sort ; <span style="color:#ffd84a">jaune</span> – révèle tous les magiciens sur le radar pendant un tour.</li>
+      </ul>
+      <p style="font-size:14px;color:var(--mute);margin-bottom:14px">Clavier : flèches haut et bas pour avancer et reculer, flèches gauche et droite (ou Q et D) pour aller de côté en vous tournant, espace pour lancer le sort.</p>
+      <button class="ghost btnQ" style="display:block;margin:0 auto 12px" aria-label="Qualité graphique">Qualité : <span class="qLabel">Haute</span></button>
+      <button class="cta" id="btnBookClose">Fermer</button>
+    </div>
+  </div>
+
+  <div class="overlay" id="end" hidden>
+    <div class="card">
+      <h2 id="endTitle">Victoire</h2>
+      <p class="sub" id="endSub"></p>
+      <div class="stats"><div><b id="stTurns">0</b><span>Tours</span></div><div><b id="stKills">0</b><span>Sorts réussis</span></div></div>
+      <button class="cta" id="btnAgain">Nouvelle partie</button>
+      <button class="cta alt" id="btnHome">Retour à l'accueil</button>
+    </div>
+  </div>
+
+  <div id="loading">Les bougies s'allument</div>
+</div>
+
+<div id="netBanner" hidden role="status" aria-live="polite"><span class="dot"></span><span id="netBannerTxt">Connexion perdue · reconnexion…</span></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/*MULTI*/
+</script>
+<script>
+/*ENGINE*/
+</script>
+<script>
+/*ASSETS*/
+</script>
+<script>
+/*GAME*/
+</script>
