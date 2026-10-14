@@ -2,8 +2,8 @@
 const assert = require('assert');
 process.env.TURN_MS = '1500'; process.env.ANIM_SCALE = '0.02'; process.env.PORT = '0'; process.env.GRACE_MS = '4000';
 const WebSocket = require('ws');
-const E = require('../engine.js');
-const { server, rooms } = require('../server.js');
+const E = require('./engine.js');
+const { server, rooms } = require('./server.js');
 let pass = 0; const ok = (n, f) => f().then(() => { pass++; console.log('ok  ', n); }, (e) => { console.error('FAIL', n, e); process.exit(1); });
 
 function client(port, name, color, { play = true, dropAt = -1 } = {}) {

@@ -310,8 +310,8 @@
         else if (a.dir === 'L' || a.dir === 'R') act[p.id] = { type: 'turn', side: a.dir };
         else act[p.id] = { type: 'wait', invalid: true };
       } else if (a.type === 'turn') {
-        // pivoter sur place n'existe que face à un mur
-        act[p.id] = !mo[a.side] ? a : { type: 'wait', invalid: true };
+        // pivoter sur place : toujours possible (un quart de tour, sans bouger)
+        act[p.id] = a.side === 'L' || a.side === 'R' ? a : { type: 'wait', invalid: true };
       } else if (a.type === 'cast') {
         act[p.id] = a;
       } else {
@@ -570,7 +570,6 @@
     }
     for (const side of ['L', 'R']) {
       const d = dirFor(p, side);
-      if (hasPassage(S, p.x, p.y, d)) continue;   // pivot sur place seulement face à un mur
       const nf = d;
       let s = randBot(S) * 0.6 - 0.2;
       if (spellTarget(S, p, nf)) s += 3;

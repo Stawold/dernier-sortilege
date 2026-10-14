@@ -956,10 +956,8 @@
       const a = b.dataset.act;
       let en = can;
       if (a === 'F' || a === 'B') en = can && !!mo[a];
-      else if (a === 'L' || a === 'R') {
-        en = can;   // face à un mur, gauche/droite fait pivoter sur place
-        const lb = b.querySelector('.lbl'); if (lb) lb.textContent = !mo[a] ? 'Pivoter' : (a === 'L' ? 'Gauche' : 'Droite');
-      }
+      else if (a === 'L' || a === 'R') en = can && !!mo[a];   // grisé face à un mur ou à la brume ; pivoter reste toujours possible
+      else en = can;
       b.disabled = !en;
     });
     const tgt = me.alive ? E.spellTarget(S, me) : null, cast = $('#cast');
@@ -1098,7 +1096,7 @@
     if (G.busy || !S || S.over || G.spectating) return;
     const me = P0(); if (!me.alive) return;
     const mo = E.moveOptions(S, me);
-    const map = { F: { type: 'move', dir: 'F' }, B: { type: 'move', dir: 'B' }, L: mo.L ? { type: 'move', dir: 'L' } : { type: 'turn', side: 'L' }, R: mo.R ? { type: 'move', dir: 'R' } : { type: 'turn', side: 'R' }, CAST: { type: 'cast' } };
+    const map = { F: { type: 'move', dir: 'F' }, B: { type: 'move', dir: 'B' }, L: { type: 'move', dir: 'L' }, R: { type: 'move', dir: 'R' }, PL: { type: 'turn', side: 'L' }, PR: { type: 'turn', side: 'R' }, CAST: { type: 'cast' } };
     const a = map[key]; if (!a) return;
     if (a.type === 'move' && !mo[a.dir]) return;
     if (a.type === 'cast' && !E.spellTarget(S, me)) return;
@@ -1297,7 +1295,7 @@
 
   /* ----- commandes ----- */
   document.querySelectorAll('[data-act]').forEach((b) => b.addEventListener('click', () => { sfx('step'); submit(b.dataset.act); }));
-  const KEYS = { ArrowUp: 'F', ArrowDown: 'B', ArrowLeft: 'L', ArrowRight: 'R', z: 'F', w: 'F', s: 'B', q: 'L', a: 'L', d: 'R', ' ': 'CAST' };
+  const KEYS = { ArrowUp: 'F', ArrowDown: 'B', ArrowLeft: 'L', ArrowRight: 'R', z: 'F', w: 'F', s: 'B', q: 'L', d: 'R', a: 'PL', e: 'PR', ' ': 'CAST' };
   window.addEventListener('keydown', (ev) => {
     if (!$('#intro').hidden || !$('#lobby').hidden || !$('#pick').hidden || !$('#book').hidden || !$('#end').hidden) return;
     const k = KEYS[ev.key] || KEYS[(ev.key || '').toLowerCase()];

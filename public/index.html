@@ -102,18 +102,19 @@ body.spectating #radar, body.spectating #wand, body.spectating #vignette { displ
   background: linear-gradient(#26162b, #150c1a 70%); border-top: 2px solid var(--gold);
   box-shadow: 0 -8px 24px #000a, inset 0 1px 0 #f7dd8e33;
 }
-#pad { display: grid; grid-template-columns: repeat(3, minmax(0, 76px)); grid-auto-rows: 62px; gap: 7px; }
+#pad { flex: 1 1 auto; max-width: 340px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: 66px; gap: 8px; }
 .key {
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; padding: 0;
   background: linear-gradient(#35213a, #1d1223); border: 1px solid var(--line); border-radius: 4px;
   box-shadow: inset 0 1px 0 #f7dd8e22, inset 0 -3px 0 #0006, 0 2px 0 #0009;
-  font-family: var(--f-label); font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--parch);
+  font-family: var(--f-label); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--parch);
   transition: transform .06s, box-shadow .12s, opacity .15s;
 }
-.key svg { width: 24px; height: 24px; stroke: var(--gold-hi); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.key svg { width: 26px; height: 26px; stroke: var(--gold-hi); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .key svg .f { fill: var(--gold-hi); stroke: none; }
 .key:active:not(:disabled) { transform: translateY(2px); box-shadow: inset 0 1px 0 #f7dd8e22, 0 0 14px #e0b04a66; border-color: var(--gold-hi); }
-.key:disabled { opacity: .32; cursor: default; }
+.key:disabled { opacity: .3; cursor: default; filter: grayscale(.6); }
+.key.piv { background: linear-gradient(#2b2036, #181022); }
 #cast {
   position: relative; flex: 0 0 auto; width: 104px; height: 104px; border-radius: 50%; display: flex; flex-direction: column;
   align-items: center; justify-content: center; gap: 2px; font-family: var(--f-label); font-size: 11px; font-weight: 700;
@@ -201,12 +202,28 @@ body.spectating #controls { opacity: .45; pointer-events: none; }
 .stats b { font-size: 24px; color: var(--gold-hi); font-variant-numeric: tabular-nums; }
 .stats span { font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--mute); }
 #loading { position: absolute; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; background: var(--bg); font-family: var(--f-label); letter-spacing: .2em; text-transform: uppercase; font-size: 12px; color: var(--gold); }
-@media (max-width: 380px) { #pad { grid-template-columns: repeat(3, minmax(0, 66px)); grid-auto-rows: 58px; } #cast { width: 92px; height: 92px; } }
-@media (min-width: 760px) { #controls { gap: 28px; } #pad { grid-template-columns: repeat(3, 84px); grid-auto-rows: 66px; } }
+@media (max-width: 380px) { #pad { grid-auto-rows: 62px; gap: 6px; } #cast { width: 88px; height: 88px; } .key { font-size: 10.5px; letter-spacing: .05em; } }
+@media (min-width: 760px) { #controls { gap: 28px; } #pad { flex: 0 0 auto; width: 300px; grid-auto-rows: 66px; } }
+/* téléphone tenu en vertical : tout est agrandi (touches, textes d'état, messages) */
+@media (orientation: portrait) and (max-width: 600px) {
+  #controls { gap: 12px; padding: 12px 12px calc(14px + env(safe-area-inset-bottom, 0px)); }
+  #pad { max-width: none; grid-auto-rows: 72px; gap: 8px; }
+  #cast { width: 96px; height: 96px; font-size: 13px; }
+  .key { font-size: 12.5px; letter-spacing: .04em; gap: 4px; }
+  .key svg { width: 30px; height: 30px; stroke-width: 2; }
+  .pill { padding: 6px 12px 5px; } .pill .k { font-size: 12px; } .pill b { font-size: 19px; }
+  .pill.btn { min-width: 42px; padding: 6px 12px; } .pill.btn svg { width: 20px; height: 20px; }
+  .chip { font-size: 13.5px; padding: 6px 12px 6px 10px; } .chip i { width: 12px; height: 12px; }
+  .toast { font-size: 18px; padding: 8px 14px; max-width: 96%; line-height: 1.3; }
+  #timer b { font-size: 17px; top: -36px; padding: 4px 12px; }
+  .tag { font-size: 12px; padding: 2px 8px 1px; }
+  #netBanner { font-size: 17px; }
+  .how li, .how li b { font-size: 17.5px; }
+}
 @media (orientation: landscape) and (max-height: 540px) {
   #app { flex-direction: row; }
   #controls { flex-direction: column; justify-content: center; gap: 10px; width: 250px; padding: 8px 12px calc(8px + env(safe-area-inset-bottom, 0px)); border-top: 0; border-left: 2px solid var(--gold); background: linear-gradient(90deg, #26162b, #150c1a); box-shadow: -8px 0 24px #000a; }
-  #pad { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: 46px; width: 100%; }
+  #pad { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: 44px; width: 100%; max-width: none; gap: 6px; }
   .key { font-size: 8.5px; letter-spacing: .06em; }
   .key svg { width: 18px; height: 18px; }
   #cast { width: 74px; height: 74px; } #cast svg { width: 24px; height: 24px; } #castLabel { font-size: 9px; }
@@ -240,9 +257,9 @@ body.spectating #controls { opacity: .45; pointer-events: none; }
   <div id="controls">
     <div id="timer" hidden><i></i><b>20 s</b></div>
     <div id="pad">
-      <span></span>
+      <button class="key piv" data-act="PL" aria-label="Pivoter à gauche sur place"><svg viewBox="0 0 24 24"><path d="M5 12a7.5 7.5 0 1 0 2.4-5.5"/><path d="M4.5 3.5v4.6h4.6"/></svg><span class="lbl">← Pivot</span></button>
       <button class="key" data-act="F" aria-label="Avancer"><svg viewBox="0 0 24 24"><path class="f" d="M12 4l7.5 8.5H15V20H9v-7.5H4.5z"/></svg><span class="lbl">Avancer</span></button>
-      <span></span>
+      <button class="key piv" data-act="PR" aria-label="Pivoter à droite sur place"><svg viewBox="0 0 24 24" style="transform:scaleX(-1)"><path d="M5 12a7.5 7.5 0 1 0 2.4-5.5"/><path d="M4.5 3.5v4.6h4.6"/></svg><span class="lbl">Pivot →</span></button>
       <button class="key" data-act="L" aria-label="Un pas à gauche en se tournant"><svg viewBox="0 0 24 24"><path d="M19 19a8 8 0 0 0-8-11H6"/><path d="M9.5 3.5L5.5 8l4 4.5"/></svg><span class="lbl">Gauche</span></button>
       <button class="key" data-act="B" aria-label="Reculer"><svg viewBox="0 0 24 24" style="transform:rotate(180deg)"><path class="f" d="M12 4l7.5 8.5H15V20H9v-7.5H4.5z"/></svg><span class="lbl">Reculer</span></button>
       <button class="key" data-act="R" aria-label="Un pas à droite en se tournant"><svg viewBox="0 0 24 24" style="transform:scaleX(-1)"><path d="M19 19a8 8 0 0 0-8-11H6"/><path d="M9.5 3.5L5.5 8l4 4.5"/></svg><span class="lbl">Droite</span></button>
@@ -321,15 +338,15 @@ body.spectating #controls { opacity: .45; pointer-events: none; }
     <div class="card">
       <h2>Grimoire</h2>
       <ul class="how">
-        <li><b>Une action par tour :</b> avancer, reculer, aller à gauche ou à droite, ou lancer le sort. Gauche et droite vous font avancer d'une case et vous tournent dans cette direction. Face à un mur, elles font simplement pivoter sur place. Tout le monde agit en même temps.</li>
+        <li><b>Une action par tour :</b> avancer, reculer, <b>gauche ou droite</b> (un pas de côté en se tournant), <b>pivoter</b> d'un quart de tour sur place, ou lancer le sort. Une touche grisée n'est pas possible à cet endroit. Tout le monde agit en même temps.</li>
         <li><b>Vision :</b> tout droit jusqu'au mur. Le radar garde en mémoire ce que vous avez vu. Si vous êtes éliminé, le brouillard se lève et vous suivez la fin de la partie du dessus.</li>
-        <li><b>Sort :</b> portée illimitée en ligne droite. Il touche le premier magicien rencontré, sauf s'il vous regarde en face. Pour viser quelqu'un à côté, placez-vous d'abord face à lui avec gauche ou droite.</li>
+        <li><b>Sort :</b> portée illimitée en ligne droite. Il touche le premier magicien rencontré, sauf s'il vous regarde en face. Pour viser quelqu'un à côté, tournez-vous d'abord vers lui avec pivot, gauche ou droite : le tir part toujours dans la direction où vous regardez, et pivoter ne vous protège pas des sorts du même tour.</li>
         <li><b>Collision :</b> deux magiciens qui visent la même case ne bougent pas, se tournent le dos et ne peuvent pas entrer sur cette case au tour suivant.</li>
         <li><b>Temps :</b> 20 secondes pour agir à chaque tour. Si le temps est écoulé sans choix, le magicien est éliminé et perd.</li>
         <li><b>Brume :</b> dès le tour 10, un cran tous les 5 tours. Les magiciens pris dedans sont éliminés. Les murs s'effondrent au besoin pour garder la zone d'un seul tenant. <b>La case centrale (marquée d'un point doré sur le plan) est ouverte sur ses quatre côtés et la brume ne l'atteint jamais</b> : à la dernière fermeture, celui qui la tient survit. Si personne n'y est, la brume patiente.</li>
         <li><b>3 bonus par carte :</b> <span style="color:#7cc4ff">bleu</span> – traverser un mur une fois (avancer ou reculer face à un mur) ; <span style="color:#5be08a">vert</span> – bouclier qui annule un sort ; <span style="color:#ffd84a">jaune</span> – révèle tous les magiciens sur le radar pendant un tour.</li>
       </ul>
-      <p style="font-size:14px;color:var(--mute);margin-bottom:14px">Clavier : flèches haut et bas pour avancer et reculer, flèches gauche et droite (ou Q et D) pour aller de côté en vous tournant, espace pour lancer le sort.</p>
+      <p style="font-size:14px;color:var(--mute);margin-bottom:14px">Clavier : flèches haut et bas pour avancer et reculer, flèches gauche et droite (ou Q et D) pour aller de côté en vous tournant, A et E pour pivoter sur place, espace pour lancer le sort.</p>
       <button class="ghost btnQ" style="display:block;margin:0 auto 12px" aria-label="Qualité graphique">Qualité : <span class="qLabel">Haute</span></button>
       <button class="cta" id="btnBookClose">Fermer</button>
     </div>
@@ -667,8 +684,8 @@ window.__MULTI__ = true;
         else if (a.dir === 'L' || a.dir === 'R') act[p.id] = { type: 'turn', side: a.dir };
         else act[p.id] = { type: 'wait', invalid: true };
       } else if (a.type === 'turn') {
-        // pivoter sur place n'existe que face à un mur
-        act[p.id] = !mo[a.side] ? a : { type: 'wait', invalid: true };
+        // pivoter sur place : toujours possible (un quart de tour, sans bouger)
+        act[p.id] = a.side === 'L' || a.side === 'R' ? a : { type: 'wait', invalid: true };
       } else if (a.type === 'cast') {
         act[p.id] = a;
       } else {
@@ -927,7 +944,6 @@ window.__MULTI__ = true;
     }
     for (const side of ['L', 'R']) {
       const d = dirFor(p, side);
-      if (hasPassage(S, p.x, p.y, d)) continue;   // pivot sur place seulement face à un mur
       const nf = d;
       let s = randBot(S) * 0.6 - 0.2;
       if (spellTarget(S, p, nf)) s += 3;
@@ -1919,10 +1935,8 @@ const WIZ = {"s": 0.000125, "P": "9gSOKK/8PgSKKdv+fgRVJJv9ggF9KOr79gSOKK/8fgRVJJ
       const a = b.dataset.act;
       let en = can;
       if (a === 'F' || a === 'B') en = can && !!mo[a];
-      else if (a === 'L' || a === 'R') {
-        en = can;   // face à un mur, gauche/droite fait pivoter sur place
-        const lb = b.querySelector('.lbl'); if (lb) lb.textContent = !mo[a] ? 'Pivoter' : (a === 'L' ? 'Gauche' : 'Droite');
-      }
+      else if (a === 'L' || a === 'R') en = can && !!mo[a];   // grisé face à un mur ou à la brume ; pivoter reste toujours possible
+      else en = can;
       b.disabled = !en;
     });
     const tgt = me.alive ? E.spellTarget(S, me) : null, cast = $('#cast');
@@ -2061,7 +2075,7 @@ const WIZ = {"s": 0.000125, "P": "9gSOKK/8PgSKKdv+fgRVJJv9ggF9KOr79gSOKK/8fgRVJJ
     if (G.busy || !S || S.over || G.spectating) return;
     const me = P0(); if (!me.alive) return;
     const mo = E.moveOptions(S, me);
-    const map = { F: { type: 'move', dir: 'F' }, B: { type: 'move', dir: 'B' }, L: mo.L ? { type: 'move', dir: 'L' } : { type: 'turn', side: 'L' }, R: mo.R ? { type: 'move', dir: 'R' } : { type: 'turn', side: 'R' }, CAST: { type: 'cast' } };
+    const map = { F: { type: 'move', dir: 'F' }, B: { type: 'move', dir: 'B' }, L: { type: 'move', dir: 'L' }, R: { type: 'move', dir: 'R' }, PL: { type: 'turn', side: 'L' }, PR: { type: 'turn', side: 'R' }, CAST: { type: 'cast' } };
     const a = map[key]; if (!a) return;
     if (a.type === 'move' && !mo[a.dir]) return;
     if (a.type === 'cast' && !E.spellTarget(S, me)) return;
@@ -2260,7 +2274,7 @@ const WIZ = {"s": 0.000125, "P": "9gSOKK/8PgSKKdv+fgRVJJv9ggF9KOr79gSOKK/8fgRVJJ
 
   /* ----- commandes ----- */
   document.querySelectorAll('[data-act]').forEach((b) => b.addEventListener('click', () => { sfx('step'); submit(b.dataset.act); }));
-  const KEYS = { ArrowUp: 'F', ArrowDown: 'B', ArrowLeft: 'L', ArrowRight: 'R', z: 'F', w: 'F', s: 'B', q: 'L', a: 'L', d: 'R', ' ': 'CAST' };
+  const KEYS = { ArrowUp: 'F', ArrowDown: 'B', ArrowLeft: 'L', ArrowRight: 'R', z: 'F', w: 'F', s: 'B', q: 'L', d: 'R', a: 'PL', e: 'PR', ' ': 'CAST' };
   window.addEventListener('keydown', (ev) => {
     if (!$('#intro').hidden || !$('#lobby').hidden || !$('#pick').hidden || !$('#book').hidden || !$('#end').hidden) return;
     const k = KEYS[ev.key] || KEYS[(ev.key || '').toLowerCase()];

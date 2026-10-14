@@ -1,4 +1,4 @@
-const E = require('../engine.js');
+const E = require('./engine.js');
 const assert = require('assert');
 const { N, K } = E;
 let pass = 0;
@@ -96,10 +96,25 @@ ok('gauche/droite contre un mur : pivot sur place', () => {
   E.resolveTurn(S, { A: MV('R') });
   assert.deepStrictEqual([P(S, 'A').x, P(S, 'A').y, P(S, 'A').f], [3, 3, E_]);
 });
-ok('pivot explicite refusé si la case est libre', () => {
+ok('pivot libre : un quart de tour sur place, même case libre à côté', () => {
   const S = arena([{ id: 'A', x: 3, y: 3, f: N_ }, { id: 'B', x: 9, y: 9, f: N_ }]);
   E.resolveTurn(S, { A: { type: 'turn', side: 'R' } });
-  assert.deepStrictEqual([P(S, 'A').x, P(S, 'A').f], [3, N_]);
+  assert.deepStrictEqual([P(S, 'A').x, P(S, 'A').y, P(S, 'A').f], [3, 3, E_]);
+  E.resolveTurn(S, { A: { type: 'turn', side: 'L' } }); E.resolveTurn(S, { A: { type: 'turn', side: 'L' } });
+  assert.strictEqual(P(S, 'A').f, W_);
+});
+ok('pivot : ne protège pas du sort du même tour (tirs résolus avant)', () => {
+  const S = arena([{ id: 'A', x: 3, y: 3, f: E_ }, { id: 'B', x: 6, y: 3, f: E_ }]);
+  E.resolveTurn(S, { A: { type: 'cast' }, B: { type: 'turn', side: 'L' } });   // B se tourne vers A, trop tard
+  assert.strictEqual(P(S, 'B').alive, false);
+});
+ok('pivot : face à face créé, plus de sort possible dans les deux sens', () => {
+  const S = arena([{ id: 'A', x: 3, y: 3, f: E_ }, { id: 'B', x: 6, y: 3, f: E_ }]);
+  E.resolveTurn(S, { B: { type: 'turn', side: 'L' } });   // B tourne vers le nord : encore touchable de profil
+  assert.strictEqual(E.spellTarget(S, P(S, 'A')), P(S, 'B'));
+  E.resolveTurn(S, { B: { type: 'turn', side: 'L' } });   // B regarde A en face
+  assert.strictEqual(P(S, 'B').f, W_);
+  assert.strictEqual(E.spellTarget(S, P(S, 'A')), null); assert.strictEqual(E.spellTarget(S, P(S, 'B')), null);
 });
 ok('pas de côté puis tir sur le voisin (deux tours)', () => {
   const S = arena([{ id: 'A', x: 3, y: 2, f: E_ }, { id: 'B', x: 3, y: 4, f: E_ }, { id: 'C', x: 12, y: 0, f: S_ }]);
