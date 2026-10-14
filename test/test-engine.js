@@ -1,4 +1,4 @@
-const E = require('./engine.js');
+const E = require('../engine.js');
 const assert = require('assert');
 const { N, K } = E;
 let pass = 0;
