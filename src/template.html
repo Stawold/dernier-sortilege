@@ -207,10 +207,10 @@ body.spectating #controls { opacity: .45; pointer-events: none; }
 /* téléphone tenu en vertical : tout est agrandi (touches, textes d'état, messages) */
 @media (orientation: portrait) and (max-width: 600px) {
   #controls { gap: 12px; padding: 12px 12px calc(14px + env(safe-area-inset-bottom, 0px)); }
-  #pad { max-width: none; grid-auto-rows: 72px; gap: 8px; }
-  #cast { width: 96px; height: 96px; font-size: 13px; }
-  .key { font-size: 12.5px; letter-spacing: .04em; gap: 4px; }
-  .key svg { width: 30px; height: 30px; stroke-width: 2; }
+  #pad { max-width: none; grid-auto-rows: 84px; gap: 9px; }
+  #cast { width: 104px; height: 104px; font-size: 14px; } #cast svg { width: 40px; height: 40px; }
+  .key { font-size: 13.5px; letter-spacing: .03em; gap: 5px; }
+  .key svg { width: 36px; height: 36px; stroke-width: 2.1; }
   .pill { padding: 6px 12px 5px; } .pill .k { font-size: 12px; } .pill b { font-size: 19px; }
   .pill.btn { min-width: 42px; padding: 6px 12px; } .pill.btn svg { width: 20px; height: 20px; }
   .chip { font-size: 13.5px; padding: 6px 12px 6px 10px; } .chip i { width: 12px; height: 12px; }

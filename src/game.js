@@ -1161,7 +1161,8 @@
     camMain.aspect = aspect;
     G.baseFov = Math.max(62, Math.min(96, (2 * Math.atan(Math.tan(39 * Math.PI / 180) / aspect) * 180) / Math.PI));
     camMain.fov = G.baseFov; camMain.aspect = aspect; camMain.updateProjectionMatrix();
-    radarSize = Math.round(Math.max(96, Math.min(132, W * 0.3)));
+    // vertical : radar bien plus grand (42 % de la largeur) ; horizontal : comme avant
+    radarSize = H > W * 1.05 ? Math.round(Math.max(130, Math.min(200, W * 0.42))) : Math.round(Math.max(96, Math.min(132, W * 0.3)));
     $('#app').style.setProperty('--radar', radarSize + 'px');
   }
   window.addEventListener('resize', resize);

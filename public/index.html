@@ -1,4 +1,4 @@
-<title>Dernier Sortilège</title>
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><meta name="theme-color" content="#0e0813"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><style>html{-webkit-text-size-adjust:100%;text-size-adjust:100%}[hidden]{display:none!important}img{max-width:100%}@supports(height:100dvh){html,body{height:100dvh}}</style><title>Dernier Sortilège</title></head><body>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cinzel:wght@500;700&family=EB+Garamond:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
@@ -207,10 +207,10 @@ body.spectating #controls { opacity: .45; pointer-events: none; }
 /* téléphone tenu en vertical : tout est agrandi (touches, textes d'état, messages) */
 @media (orientation: portrait) and (max-width: 600px) {
   #controls { gap: 12px; padding: 12px 12px calc(14px + env(safe-area-inset-bottom, 0px)); }
-  #pad { max-width: none; grid-auto-rows: 72px; gap: 8px; }
-  #cast { width: 96px; height: 96px; font-size: 13px; }
-  .key { font-size: 12.5px; letter-spacing: .04em; gap: 4px; }
-  .key svg { width: 30px; height: 30px; stroke-width: 2; }
+  #pad { max-width: none; grid-auto-rows: 84px; gap: 9px; }
+  #cast { width: 104px; height: 104px; font-size: 14px; } #cast svg { width: 40px; height: 40px; }
+  .key { font-size: 13.5px; letter-spacing: .03em; gap: 5px; }
+  .key svg { width: 36px; height: 36px; stroke-width: 2.1; }
   .pill { padding: 6px 12px 5px; } .pill .k { font-size: 12px; } .pill b { font-size: 19px; }
   .pill.btn { min-width: 42px; padding: 6px 12px; } .pill.btn svg { width: 20px; height: 20px; }
   .chip { font-size: 13.5px; padding: 6px 12px 6px 10px; } .chip i { width: 12px; height: 12px; }
@@ -2140,7 +2140,8 @@ const WIZ = {"s": 0.000125, "P": "9gSOKK/8PgSKKdv+fgRVJJv9ggF9KOr79gSOKK/8fgRVJJ
     camMain.aspect = aspect;
     G.baseFov = Math.max(62, Math.min(96, (2 * Math.atan(Math.tan(39 * Math.PI / 180) / aspect) * 180) / Math.PI));
     camMain.fov = G.baseFov; camMain.aspect = aspect; camMain.updateProjectionMatrix();
-    radarSize = Math.round(Math.max(96, Math.min(132, W * 0.3)));
+    // vertical : radar bien plus grand (42 % de la largeur) ; horizontal : comme avant
+    radarSize = H > W * 1.05 ? Math.round(Math.max(130, Math.min(200, W * 0.42))) : Math.round(Math.max(96, Math.min(132, W * 0.3)));
     $('#app').style.setProperty('--radar', radarSize + 'px');
   }
   window.addEventListener('resize', resize);
@@ -2608,3 +2609,4 @@ const WIZ = {"s": 0.000125, "P": "9gSOKK/8PgSKKdv+fgRVJJv9ggF9KOr79gSOKK/8fgRVJJ
 })();
 
 </script>
+</body></html>
